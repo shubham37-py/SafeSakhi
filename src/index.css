@@ -5,103 +5,109 @@
   color-scheme: light;
 }
 
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #f8fafc;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 40%, #f093fb 100%);
+  min-height: 100vh;
   color: #0f172a;
   overflow-x: hidden;
 }
 
-/* Custom premium scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.5); }
+
+/* ─── Glassmorphism Utilities ─────────────────────────────────── */
+
+/* Primary glass card - main surfaces */
+.glass {
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255,255,255,0.4);
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
+/* Lighter glass - secondary surfaces */
+.glass-sm {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 9999px;
+/* Solid white glass - for emphasis/cards inside glass */
+.glass-solid {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+/* Dark glass - navbar */
+.glass-dark {
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
 }
 
-/* Premium Card Styles */
-.premium-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
-  border-radius: 20px;
-}
-
-.premium-card-hover {
-  transition: all 0.2s ease-in-out;
-}
-
-.premium-card-hover:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 25px -4px rgba(0, 0, 0, 0.08);
-}
-
-/* Pulse animations */
-@keyframes soft-pulse-emerald {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-  50% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-}
-
-@keyframes soft-pulse-rose {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.5); }
-  50% { box-shadow: 0 0 0 10px rgba(244, 63, 94, 0); }
-}
-
-.pulse-emerald {
-  animation: soft-pulse-emerald 2s infinite;
-}
-
-.pulse-rose {
-  animation: soft-pulse-rose 1.5s infinite;
-}
-
-/* Leaflet Container Overrides */
+/* ─── Leaflet Overrides ───────────────────────────────────────── */
 .leaflet-container {
   width: 100%;
   height: 100%;
-  background-color: #f1f5f9 !important;
-  font-family: inherit;
+  background: #e8eaf0 !important;
   border-radius: inherit;
 }
 
 .leaflet-bar a {
-  background-color: #ffffff !important;
+  background: rgba(255,255,255,0.85) !important;
+  backdrop-filter: blur(10px) !important;
   color: #334155 !important;
-  border-bottom: 1px solid #e2e8f0 !important;
-  border-radius: 8px !important;
+  border: 1px solid rgba(255,255,255,0.5) !important;
+  border-radius: 10px !important;
 }
 
 .leaflet-bar a:hover {
-  background-color: #f8fafc !important;
-  color: #0f172a !important;
+  background: rgba(255,255,255,0.95) !important;
 }
 
-.leaflet-popup-content-wrapper, .leaflet-popup-tip {
-  background: #ffffff !important;
-  color: #0f172a !important;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-  border-radius: 16px;
+.leaflet-popup-content-wrapper {
+  background: rgba(255,255,255,0.92) !important;
+  backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255,255,255,0.6) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important;
+  border-radius: 16px !important;
+  color: #1e293b !important;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.98); }
-  to { opacity: 1; transform: scale(1); }
+.leaflet-popup-tip {
+  background: rgba(255,255,255,0.92) !important;
+}
+
+/* ─── Animations ─────────────────────────────────────────────── */
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
 }
 
 .animate-fadeIn {
-  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4); }
+  50%       { box-shadow: 0 0 0 10px rgba(244, 63, 94, 0); }
+}
+
+.glow-rose { animation: glow-pulse 1.5s infinite; }

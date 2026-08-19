@@ -4,61 +4,52 @@ import { MapPin } from 'lucide-react';
 
 export const JourneyTimeline: React.FC = () => {
   const { activeRoute, state } = useSafety();
-
   const currentIndex = Math.min(
     activeRoute.waypoints.length - 1,
     Math.floor(state.progressFraction * activeRoute.waypoints.length)
   );
+  const eta = Math.max(2, Math.round((1 - state.progressFraction) * activeRoute.estimatedDurationMin));
 
   return (
-    <div className="w-full bg-white border border-slate-200/90 rounded-2xl p-3 shadow-xs">
-      <div className="flex items-center justify-between text-[11px] mb-2 font-semibold">
-        <span className="text-slate-600 uppercase tracking-wider text-[10px]">Route Progress</span>
-        <span className="text-indigo-600">
-          ETA: {Math.max(2, Math.round((1 - state.progressFraction) * activeRoute.estimatedDurationMin))} mins
-        </span>
+    <div className="glass rounded-3xl p-4">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <MapPin className="w-3.5 h-3.5 text-purple-300" />
+          <span className="text-sm font-bold text-white">Route Progress</span>
+        </div>
+        <span className="text-xs text-white/50 font-semibold">ETA <span className="text-purple-300 font-bold">{eta} min</span></span>
       </div>
 
-      {/* Horizontal Waypoint Bar */}
-      <div className="relative flex items-center justify-between">
-        {/* Progress Track */}
-        <div className="absolute top-1/2 left-0 right-0 h-1 bg-slate-100 -translate-y-1/2 z-0 rounded-full" />
+      {/* Step Track */}
+      <div className="relative flex items-center justify-between mb-3">
+        <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-white/15 -translate-y-1/2 z-0 rounded-full" />
         <div
-          className="absolute top-1/2 left-0 h-1 bg-emerald-500 -translate-y-1/2 z-0 rounded-full transition-all duration-500"
+          className="absolute top-1/2 left-0 h-0.5 bg-gradient-to-r from-purple-400 to-emerald-400 -translate-y-1/2 z-0 rounded-full transition-all duration-500"
           style={{ width: `${state.progressFraction * 100}%` }}
         />
-
         {activeRoute.waypoints.map((_, idx) => {
-          const isPassed = idx <= currentIndex;
-          const isCurrent = idx === currentIndex;
-
+          const passed = idx <= currentIndex;
+          const current = idx === currentIndex;
           return (
-            <div key={idx} className="relative z-10 flex flex-col items-center group">
-              <div
-                className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold transition-all duration-300 ${
-                  isCurrent
-                    ? 'bg-emerald-500 text-white ring-4 ring-emerald-100 scale-110 shadow-sm'
-                    : isPassed
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-white border border-slate-200 text-slate-400'
-                }`}
-              >
-                {isPassed && !isCurrent ? '✓' : idx + 1}
+            <div key={idx} className="relative z-10">
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black transition-all duration-300 ${
+                current
+                  ? 'bg-purple-400 text-white ring-4 ring-purple-400/30 scale-110'
+                  : passed
+                  ? 'bg-emerald-400 text-white'
+                  : 'bg-white/15 border border-white/25 text-white/40'
+              }`}>
+                {passed && !current ? '✓' : idx + 1}
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* Current Landmark Name */}
-      <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
-        <div className="flex items-center gap-1 text-slate-700 font-semibold truncate">
-          <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-          <span className="truncate">Near {activeRoute.waypoints[currentIndex]?.name || 'Satara Road'}</span>
-        </div>
-        <span className="text-[10px] text-slate-400 font-mono shrink-0">
-          Step {currentIndex + 1} of {activeRoute.waypoints.length}
-        </span>
+      {/* Current Stop */}
+      <div className="glass-sm rounded-xl px-3 py-2 flex items-center justify-between text-xs">
+        <span className="text-white/60">📍 {activeRoute.waypoints[currentIndex]?.name || '—'}</span>
+        <span className="text-white/40 font-mono text-[10px]">{currentIndex + 1} / {activeRoute.waypoints.length}</span>
       </div>
     </div>
   );

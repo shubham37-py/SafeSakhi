@@ -4,187 +4,103 @@ import { ShieldAlert, ShieldCheck, ChevronDown, ChevronUp, Zap, Battery, Clock, 
 
 export const RiskScoreHUD: React.FC = () => {
   const { riskEvaluation, state } = useSafety();
-  const [showFormulaDetails, setShowFormulaDetails] = useState<boolean>(false);
+  const [showFormula, setShowFormula] = useState(false);
 
   const score = riskEvaluation.totalRisk;
   const level = riskEvaluation.riskLevel;
 
-  const getTheme = () => {
-    if (level === 'critical' || state.isSosTriggered) {
-      return {
-        cardBorder: 'border-rose-200/80 ring-1 ring-rose-100',
-        badge: 'bg-rose-50 text-rose-700 border-rose-200',
-        ringStroke: '#f43f5e',
-        scoreColor: 'text-rose-600',
-        label: 'High Risk Alert',
-        subtext: 'Route deviation anomaly active',
-        icon: <ShieldAlert className="w-5 h-5 text-rose-500" />,
-      };
-    }
-    if (level === 'caution') {
-      return {
-        cardBorder: 'border-amber-200/80 ring-1 ring-amber-100',
-        badge: 'bg-amber-50 text-amber-800 border-amber-200',
-        ringStroke: '#f59e0b',
-        scoreColor: 'text-amber-600',
-        label: 'Caution Level',
-        subtext: 'Minor path or time delay',
-        icon: <ShieldAlert className="w-5 h-5 text-amber-500" />,
-      };
-    }
-    return {
-      cardBorder: 'border-white/90',
-      badge: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-      ringStroke: '#10b981',
-      scoreColor: 'text-slate-900',
-      label: 'Journey is Safe',
-      subtext: 'On-corridor transit to VIT Pune',
-      icon: <ShieldCheck className="w-5 h-5 text-emerald-600" />,
-    };
-  };
-
-  const theme = getTheme();
+  const theme = level === 'critical' || state.isSosTriggered
+    ? { ring: '#f43f5e', badge: 'bg-rose-500/20 text-rose-200 border-rose-400/30', score: 'text-rose-300', icon: <ShieldAlert className="w-4 h-4 text-rose-300" />, label: 'High Risk' }
+    : level === 'caution'
+    ? { ring: '#f59e0b', badge: 'bg-amber-500/20 text-amber-200 border-amber-400/30', score: 'text-amber-300', icon: <ShieldAlert className="w-4 h-4 text-amber-300" />, label: 'Caution' }
+    : { ring: '#10b981', badge: 'bg-emerald-500/20 text-emerald-200 border-emerald-400/30', score: 'text-white', icon: <ShieldCheck className="w-4 h-4 text-emerald-300" />, label: 'Safe' };
 
   const radius = 38;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (score / 100) * circumference;
+  const circ = 2 * Math.PI * radius;
+  const offset = circ - (score / 100) * circ;
 
   return (
-    <div className={`w-full rounded-3xl bg-white/80 backdrop-blur-xl border ${theme.cardBorder} p-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300`}>
+    <div className="glass rounded-3xl p-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-2xl bg-white/90 border border-white shadow-xs">
-            {theme.icon}
-          </div>
-          <div>
-            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-              Safety Score Index
-            </h3>
-            <p className="text-[11px] text-slate-500">{theme.subtext}</p>
-          </div>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          {theme.icon}
+          <span className="text-sm font-bold text-white">Safety Score</span>
         </div>
-
-        <span className={`text-xs font-bold px-3 py-1 rounded-2xl border ${theme.badge} shadow-2xs`}>
+        <span className={`text-xs font-bold px-3 py-1 rounded-full border ${theme.badge}`}>
           {theme.label}
         </span>
       </div>
 
-      {/* Main Score & Metrics */}
+      {/* Score Ring + Metrics */}
       <div className="grid grid-cols-12 gap-3 items-center">
-        {/* Radial Circle */}
-        <div className="col-span-5 flex flex-col items-center justify-center">
-          <div className="relative w-22 h-22 flex items-center justify-center">
-            <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 96 96">
+        {/* Ring */}
+        <div className="col-span-5 flex justify-center">
+          <div className="relative w-24 h-24">
+            <svg className="w-full h-full -rotate-90" viewBox="0 0 96 96">
+              <circle cx="48" cy="48" r={radius} stroke="rgba(255,255,255,0.1)" strokeWidth="8" fill="none" />
               <circle
-                cx="48"
-                cy="48"
-                r={radius}
-                className="stroke-slate-100"
-                strokeWidth="8"
-                fill="transparent"
-              />
-              <circle
-                cx="48"
-                cy="48"
-                r={radius}
-                stroke={theme.ringStroke}
-                strokeWidth="8"
-                strokeDasharray={circumference}
-                strokeDashoffset={strokeDashoffset}
-                strokeLinecap="round"
-                fill="transparent"
-                className="transition-all duration-500 ease-out"
+                cx="48" cy="48" r={radius}
+                stroke={theme.ring} strokeWidth="8"
+                strokeDasharray={circ} strokeDashoffset={offset}
+                strokeLinecap="round" fill="none"
+                className="transition-all duration-500"
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className={`text-2xl font-black font-mono tracking-tight ${theme.scoreColor}`}>
-                {score}
-              </span>
-              <span className="text-[9px] uppercase font-bold text-slate-400">/ 100</span>
+              <span className={`text-2xl font-black font-mono ${theme.score}`}>{score}</span>
+              <span className="text-[9px] text-white/40 font-semibold uppercase tracking-wider">/ 100</span>
             </div>
           </div>
         </div>
 
-        {/* 3 Plain White Glass Badges */}
-        <div className="col-span-7 space-y-1.5 text-xs">
-          <div className="bg-white/70 backdrop-blur-md border border-white/90 rounded-2xl p-2 flex items-center justify-between shadow-2xs">
-            <span className="text-slate-500 flex items-center gap-1.5 text-[11px] font-medium">
-              <Zap className="w-3.5 h-3.5 text-slate-600" />
-              Route Path
-            </span>
-            <span className={`font-semibold text-[11px] ${state.isDeviated ? 'text-rose-600 font-bold' : 'text-slate-800'}`}>
-              {state.isDeviated ? `+${state.deviationDistanceMeters}m off-route` : 'Normal Corridor'}
-            </span>
-          </div>
-
-          <div className="bg-white/70 backdrop-blur-md border border-white/90 rounded-2xl p-2 flex items-center justify-between shadow-2xs">
-            <span className="text-slate-500 flex items-center gap-1.5 text-[11px] font-medium">
-              <Clock className="w-3.5 h-3.5 text-slate-600" />
-              Movement
-            </span>
-            <span className="font-semibold text-slate-800 text-[11px]">
-              {state.isStoppedUnusually ? `Stopped (${state.unusualStopDurationSec}s)` : 'Moving (34 km/h)'}
-            </span>
-          </div>
-
-          <div className="bg-white/70 backdrop-blur-md border border-white/90 rounded-2xl p-2 flex items-center justify-between shadow-2xs">
-            <span className="text-slate-500 flex items-center gap-1.5 text-[11px] font-medium">
-              <Battery className="w-3.5 h-3.5 text-slate-600" />
-              Battery
-            </span>
-            <span className={`font-semibold text-[11px] ${state.batteryLevel < 20 ? 'text-rose-600 font-bold' : 'text-slate-800'}`}>
-              {state.batteryLevel}% {state.batteryLevel < 20 ? '⚠️ Low' : 'Optimal'}
-            </span>
-          </div>
+        {/* Metric Pills */}
+        <div className="col-span-7 space-y-2">
+          {[
+            { icon: <Zap className="w-3 h-3" />, label: 'Route', value: state.isDeviated ? `+${state.deviationDistanceMeters}m off` : 'Normal', alert: state.isDeviated },
+            { icon: <Clock className="w-3 h-3" />, label: 'Motion', value: state.isStoppedUnusually ? `Stopped ${state.unusualStopDurationSec}s` : 'Moving', alert: state.isStoppedUnusually },
+            { icon: <Battery className="w-3 h-3" />, label: 'Battery', value: `${state.batteryLevel}%`, alert: state.batteryLevel < 20 },
+          ].map(({ icon, label, value, alert }) => (
+            <div key={label} className="glass-sm rounded-xl px-3 py-2 flex items-center justify-between">
+              <span className="flex items-center gap-1.5 text-white/60 text-[11px]">
+                {icon}{label}
+              </span>
+              <span className={`text-[11px] font-bold ${alert ? 'text-rose-300' : 'text-white'}`}>
+                {value}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Expandable Judge Formula */}
-      <div className="mt-3 pt-2.5 border-t border-slate-100">
+      {/* Expandable Formula */}
+      <div className="mt-4 pt-3 border-t border-white/10">
         <button
-          onClick={() => setShowFormulaDetails(!showFormulaDetails)}
-          className="w-full flex items-center justify-between text-[11px] text-slate-500 hover:text-slate-900 font-medium transition"
+          onClick={() => setShowFormula(!showFormula)}
+          className="w-full flex items-center justify-between text-[11px] text-white/50 hover:text-white/80 transition"
         >
-          <span className="flex items-center gap-1.5">
-            <Info className="w-3.5 h-3.5 text-slate-500" />
-            <span>How AI calculates this score</span>
-          </span>
-          {showFormulaDetails ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          <span className="flex items-center gap-1.5"><Info className="w-3.5 h-3.5" /> How AI calculates this</span>
+          {showFormula ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
         </button>
 
-        {showFormulaDetails && (
-          <div className="mt-2 bg-white/90 backdrop-blur-md border border-white rounded-2xl p-3 text-[11px] space-y-2 shadow-sm animate-fadeIn">
-            <div className="font-mono text-[10px] text-slate-700 bg-slate-50 p-2 rounded-xl border border-slate-100">
-              Risk = (0.30×RouteDev) + (0.20×Stop) + (0.15×Time) + (0.10×Crowd) + (0.10×Battery) + (0.15×Response)
-            </div>
-
-            <div className="space-y-1.5 text-[10px]">
-              <div className="flex justify-between text-slate-600">
-                <span>1. Route Deviation:</span>
-                <span className="font-semibold text-slate-900">{riskEvaluation.weightedBreakdown.routeDeviation} / 30 pts</span>
+        {showFormula && (
+          <div className="mt-3 glass-sm rounded-2xl p-3 space-y-2 animate-fadeIn">
+            <p className="text-[10px] font-mono text-white/60 bg-white/5 p-2 rounded-lg leading-relaxed">
+              Risk = (0.30×Dev) + (0.20×Stop) + (0.15×Time) + (0.10×Crowd) + (0.10×Batt) + (0.15×Response)
+            </p>
+            {[
+              ['Route Deviation', riskEvaluation.weightedBreakdown.routeDeviation, 30],
+              ['Unusual Stop', riskEvaluation.weightedBreakdown.unusualStop, 20],
+              ['Time of Day', riskEvaluation.weightedBreakdown.timeOfDay, 15],
+              ['Crowd / Isolation', riskEvaluation.weightedBreakdown.crowdDensity, 10],
+              ['Battery Health', riskEvaluation.weightedBreakdown.battery, 10],
+              ['Responsiveness', riskEvaluation.weightedBreakdown.unresponsiveness, 15],
+            ].map(([label, val, max]) => (
+              <div key={label as string} className="flex justify-between text-[10px] text-white/60">
+                <span>{label as string}</span>
+                <span className="text-white font-bold">{val as number} / {max as number}</span>
               </div>
-              <div className="flex justify-between text-slate-600">
-                <span>2. Unusual Stop Anomaly:</span>
-                <span className="font-semibold text-slate-900">{riskEvaluation.weightedBreakdown.unusualStop} / 20 pts</span>
-              </div>
-              <div className="flex justify-between text-slate-600">
-                <span>3. Time of Day (Night factor):</span>
-                <span className="font-semibold text-slate-900">{riskEvaluation.weightedBreakdown.timeOfDay} / 15 pts</span>
-              </div>
-              <div className="flex justify-between text-slate-600">
-                <span>4. Isolation / Footfall:</span>
-                <span className="font-semibold text-slate-900">{riskEvaluation.weightedBreakdown.crowdDensity} / 10 pts</span>
-              </div>
-              <div className="flex justify-between text-slate-600">
-                <span>5. Battery Health:</span>
-                <span className="font-semibold text-slate-900">{riskEvaluation.weightedBreakdown.battery} / 10 pts</span>
-              </div>
-              <div className="flex justify-between text-slate-600">
-                <span>6. User Responsiveness:</span>
-                <span className="font-semibold text-slate-900">{riskEvaluation.weightedBreakdown.unresponsiveness} / 15 pts</span>
-              </div>
-            </div>
+            ))}
           </div>
         )}
       </div>

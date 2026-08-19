@@ -3,180 +3,115 @@ import { SafetyProvider, useSafety } from './context/SafetyContext';
 import { TravelerView } from './components/Traveler/TravelerView';
 import { GuardianDashboard } from './components/Guardian/GuardianDashboard';
 import { ArchitectureModal } from './components/Vision/ArchitectureModal';
-import { StoryNavigator } from './components/Pitch/StoryNavigator';
-import {
-  Shield,
-  Smartphone,
-  ShieldCheck,
-  Columns,
-  Sparkles,
-  Radio,
-  Volume2,
-  VolumeX,
-} from 'lucide-react';
+import { Shield, Smartphone, ShieldCheck, LayoutTemplate, Sparkles, Volume2, VolumeX } from 'lucide-react';
 
 type ViewMode = 'split' | 'traveler' | 'guardian';
 
 const MainAppContent: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('split');
-  const [isVisionModalOpen, setIsVisionModalOpen] = useState<boolean>(false);
+  const [isVisionModalOpen, setIsVisionModalOpen] = useState(false);
   const { soundEnabled, setSoundEnabled } = useSafety();
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans selection:bg-indigo-100 selection:text-indigo-900">
-      {/* Top Navbar */}
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 shadow-xs">
+    <div className="min-h-screen flex flex-col">
+      {/* ── Navbar ── */}
+      <header className="glass-dark sticky top-0 z-50 px-4 py-3">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-          {/* Logo & Brand */}
+
+          {/* Brand */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-slate-900 flex items-center justify-center text-white font-bold shadow-sm">
-              <Shield className="w-5 h-5 fill-current text-white" />
+            <div className="w-9 h-9 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center shadow-sm">
+              <Shield className="w-5 h-5 text-white" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-base font-bold tracking-tight text-slate-900">SafeTransit</h1>
-                <span className="text-[10px] uppercase font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-0.5 rounded-full">
-                  Hackathon Pitch MVP
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-500 hidden sm:block">
-                Predictive Transit Safety for Women • Pune Swargate ➔ VIT Bibwewadi
-              </p>
+              <h1 className="text-sm font-bold text-white tracking-tight">SafeTransit</h1>
+              <p className="text-[10px] text-white/60 hidden sm:block">Women's Predictive Safety · Pune</p>
             </div>
           </div>
 
-          {/* View Mode Switcher */}
-          <div className="flex items-center gap-1 bg-slate-100 border border-slate-200 rounded-2xl p-1 shadow-inner">
-            <button
-              onClick={() => setViewMode('split')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                viewMode === 'split'
-                  ? 'bg-slate-900 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Columns className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Side-by-Side Pitch</span>
-              <span className="md:hidden">Dual</span>
-            </button>
-
-            <button
-              onClick={() => setViewMode('traveler')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                viewMode === 'traveler'
-                  ? 'bg-slate-900 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Smartphone className="w-3.5 h-3.5" />
-              <span>Traveler App</span>
-            </button>
-
-            <button
-              onClick={() => setViewMode('guardian')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                viewMode === 'guardian'
-                  ? 'bg-slate-900 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Guardian Console</span>
-            </button>
+          {/* View Switcher */}
+          <div className="flex items-center gap-1 bg-white/10 border border-white/20 rounded-2xl p-1">
+            {([
+              { id: 'split', label: 'Split View', icon: <LayoutTemplate className="w-3.5 h-3.5" /> },
+              { id: 'traveler', label: 'Traveler', icon: <Smartphone className="w-3.5 h-3.5" /> },
+              { id: 'guardian', label: 'Guardian', icon: <ShieldCheck className="w-3.5 h-3.5" /> },
+            ] as const).map(({ id, label, icon }) => (
+              <button
+                key={id}
+                onClick={() => setViewMode(id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  viewMode === id
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-white/70 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                {icon}
+                <span className="hidden sm:inline">{label}</span>
+              </button>
+            ))}
           </div>
 
-          {/* Right Action Tools */}
+          {/* Right Controls */}
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsVisionModalOpen(true)}
-              className="px-3.5 py-1.5 rounded-2xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition"
+              className="glass-sm flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white hover:bg-white/20 transition"
             >
-              <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-              <span>AI Architecture Vision</span>
+              <Sparkles className="w-3.5 h-3.5 text-purple-200" />
+              <span className="hidden sm:inline">AI Vision</span>
             </button>
-
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
-              title={soundEnabled ? 'Mute Alert Audio' : 'Unmute Alert Audio'}
-              className="p-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs transition border border-slate-200"
+              className="glass-sm p-2 rounded-xl text-white/70 hover:text-white hover:bg-white/20 transition"
             >
-              {soundEnabled ? <Volume2 className="w-4 h-4 text-emerald-600" /> : <VolumeX className="w-4 h-4 text-slate-400" />}
+              {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             </button>
           </div>
         </div>
       </header>
 
-      {/* Main Viewport */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-2 sm:p-4">
-        {/* Pitch Story Navigator Bar */}
-        <StoryNavigator />
-
+      {/* ── Main ── */}
+      <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5">
         {viewMode === 'split' && (
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-            {/* Left Column: Traveler App (5 cols) */}
-            <div className="xl:col-span-5 flex flex-col items-center">
-              <div className="w-full max-w-md mb-1.5 flex items-center justify-between px-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                  <Smartphone className="w-3.5 h-3.5 text-slate-700" />
-                  <span>Passenger Mobile View</span>
-                </span>
-                <span className="text-[10px] bg-slate-100 border border-slate-200 text-slate-700 font-semibold px-2.5 py-0.5 rounded-full">
-                  Real-Time GPS Telemetry
-                </span>
-              </div>
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
+            <div className="xl:col-span-5">
+              <SectionLabel icon={<Smartphone className="w-3.5 h-3.5" />} text="Passenger App" />
               <TravelerView />
             </div>
-
-            {/* Right Column: Guardian Dashboard (7 cols) */}
-            <div className="xl:col-span-7 flex flex-col items-center">
-              <div className="w-full mb-1.5 flex items-center justify-between px-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-slate-700" />
-                  <span>Guardian Command Console (Synced Live)</span>
-                </span>
-                <span className="text-[10px] bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                  <Radio className="w-2.5 h-2.5 animate-pulse text-emerald-600" />
-                  <span>BroadcastChannel Active</span>
-                </span>
-              </div>
+            <div className="xl:col-span-7">
+              <SectionLabel icon={<ShieldCheck className="w-3.5 h-3.5" />} text="Guardian Console · Live Sync" />
               <GuardianDashboard />
             </div>
           </div>
         )}
-
         {viewMode === 'traveler' && (
-          <div className="max-w-md mx-auto py-2">
+          <div className="max-w-md mx-auto">
             <TravelerView />
           </div>
         )}
-
-        {viewMode === 'guardian' && (
-          <div className="max-w-5xl mx-auto py-2">
-            <GuardianDashboard />
-          </div>
-        )}
+        {viewMode === 'guardian' && <GuardianDashboard />}
       </main>
 
-      {/* Vision & Heatmap Modal */}
-      <ArchitectureModal
-        isOpen={isVisionModalOpen}
-        onClose={() => setIsVisionModalOpen(false)}
-      />
-
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 py-3.5 px-4 text-center text-xs text-slate-500 shadow-2xs">
-        SafeTransit • Predictive AI Women's Transit Safety Platform • Hackathon MVP (Pune Swargate ➔ VIT Bibwewadi)
+      {/* ── Footer ── */}
+      <footer className="text-center text-[11px] text-white/40 py-4">
+        SafeTransit MVP · Pune Swargate → VIT Bibwewadi
       </footer>
+
+      <ArchitectureModal isOpen={isVisionModalOpen} onClose={() => setIsVisionModalOpen(false)} />
     </div>
   );
 };
 
-export const App: React.FC = () => {
-  return (
-    <SafetyProvider>
-      <MainAppContent />
-    </SafetyProvider>
-  );
-};
+const SectionLabel: React.FC<{ icon: React.ReactNode; text: string }> = ({ icon, text }) => (
+  <div className="flex items-center gap-1.5 mb-2 px-1 text-white/60 text-[11px] font-semibold uppercase tracking-wider">
+    {icon}{text}
+  </div>
+);
+
+export const App: React.FC = () => (
+  <SafetyProvider>
+    <MainAppContent />
+  </SafetyProvider>
+);
 
 export default App;
