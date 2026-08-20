@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
-import { useEffect, useRef } from 'react';
 import { useSafety } from '../../context/SafetyContext';
-import { Crosshair, Compass, AlertTriangle, MapPin } from 'lucide-react';
+import { Crosshair, Compass, AlertTriangle, MapPin, Layers } from 'lucide-react';
 
 interface SafeTransitMapProps {
   heightClass?: string;
@@ -21,8 +20,10 @@ export const SafeTransitMap: React.FC<SafeTransitMapProps> = ({
   const normalPoly = useRef<L.Polyline | null>(null);
   const devPoly = useRef<L.Polyline | null>(null);
   const dangerCircles = useRef<L.Circle[]>([]);
+  const heatmapCircles = useRef<L.Circle[]>([]);
   const wpMarkers = useRef<L.Marker[]>([]);
 
+  const [showHeatmap, setShowHeatmap] = useState(false);
   const { state, activeRoute, riskEvaluation } = useSafety();
 
   // Init map
@@ -55,7 +56,13 @@ export const SafeTransitMap: React.FC<SafeTransitMapProps> = ({
     wpMarkers.current.forEach(m => m.remove());
     wpMarkers.current = [];
 
-    const nPoly = L.polyline(activeRoute.normalPath, { color: '#7c3aed', weight: 5, opacity: 0.85, lineCap: 'round', lineJoin: 'round' }).addTo(map);
+    const nPoly = L.polyline(activeRoute.normalPath, {
+      color: '#7c3aed',
+      weight: 5,
+      opacity: 0.85,
+      lineCap: 'round',
+      lineJoin: 'round',
+    }).addTo(map);
     normalPoly.current = nPoly;
 
     if (activeRoute.deviationPath?.length) {
@@ -70,8 +77,11 @@ export const SafeTransitMap: React.FC<SafeTransitMapProps> = ({
     activeRoute.dangerZones.forEach(zone => {
       const c = L.circle(zone.center, {
         radius: zone.radiusMeters,
-        color: '#f43f5e', fillColor: '#f43f5e',
-        fillOpacity: 0.08, weight: 1.5, dashArray: '4,6',
+        color: '#f43f5e',
+        fillColor: '#f43f5e',
+        fillOpacity: 0.12,
+        weight: 1.5,
+        dashArray: '4,6',
       }).addTo(map);
       c.bindTooltip(`⚠️ ${zone.name}`, { direction: 'top', className: 'leaflet-tooltip-custom' });
       dangerCircles.current.push(c);
@@ -98,6 +108,42 @@ export const SafeTransitMap: React.FC<SafeTransitMapProps> = ({
 
     map.fitBounds(nPoly.getBounds(), { padding: [30, 30] });
   }, [activeRoute, state.isDeviated]);
+
+  // Heatmap Overlay Layer
+  useEffect(() => {
+    const map = mapInstance.current;
+    if (!map) return;
+
+    heatmapCircles.current.forEach(c => c.remove());
+    heatmapCircles.current = [];
+
+    if (showHeatmap) {
+      // Swargate Metro Hub (Green 92%)
+      const c1 = L.circle([18.5018, 73.8586], { radius: 240, color: '#10b981', fillColor: '#10b981', fillOpacity: 0.22, weight: 1 }).addTo(map);
+      c1.bindTooltip('🟢 Swargate Safety Index: 92/100 (High CCTV & Lighting)', { direction: 'top' });
+      heatmapCircles.current.push(c1);
+
+      // Satara Road BRT (Green 86%)
+      const c2 = L.circle([18.4895, 73.8572], { radius: 260, color: '#10b981', fillColor: '#10b981', fillOpacity: 0.18, weight: 1 }).addTo(map);
+      c2.bindTooltip('🟢 Satara Rd Corridor: 86/100 (Active BRT Lane)', { direction: 'top' });
+      heatmapCircles.current.push(c2);
+
+      // Padmavati Chowk (Amber 84%)
+      const c3 = L.circle([18.4770, 73.8585], { radius: 220, color: '#f59e0b', fillColor: '#f59e0b', fillOpacity: 0.20, weight: 1 }).addTo(map);
+      c3.bindTooltip('🟡 Padmavati BRT: 84/100 (Moderate Footfall)', { direction: 'top' });
+      heatmapCircles.current.push(c3);
+
+      // VIT Pune Campus Zone (Green 90%)
+      const c4 = L.circle([18.4635, 73.8682], { radius: 280, color: '#10b981', fillColor: '#10b981', fillOpacity: 0.22, weight: 1 }).addTo(map);
+      c4.bindTooltip('🟢 VIT Pune Student Hub: 90/100 (Campus Security Active)', { direction: 'top' });
+      heatmapCircles.current.push(c4);
+
+      // Market Yard Hinterland (Red 38%)
+      const c5 = L.circle([18.4845, 73.8745], { radius: 360, color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.28, weight: 2, dashArray: '4,4' }).addTo(map);
+      c5.bindTooltip('🔴 Market Yard Hinterland: 38/100 (Caution: Low Lighting, Industrial Backroad)', { direction: 'top' });
+      heatmapCircles.current.push(c5);
+    }
+  }, [showHeatmap]);
 
   // Update traveler dot
   useEffect(() => {
@@ -135,37 +181,54 @@ export const SafeTransitMap: React.FC<SafeTransitMapProps> = ({
     <div className={`relative w-full ${heightClass}`}>
       <div ref={mapRef} className="w-full h-full" />
 
-      {/* Floating Status */}
+      {/* Floating Status Badge */}
       <div className="absolute top-2.5 left-2.5 z-[400] flex flex-col gap-1.5 pointer-events-none">
-        <div className="flex items-center gap-1.5 bg-white/90 backdrop-blur-md border border-white/60 px-2.5 py-1.5 rounded-xl text-[11px] font-bold text-slate-800 shadow-sm">
+        <div className="flex items-center gap-1.5 bg-white/95 backdrop-blur-md border border-white/60 px-2.5 py-1.5 rounded-xl text-[11px] font-bold text-slate-800 shadow-sm pointer-events-auto">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          {isGuardianView ? 'Guardian Sync' : 'Live Corridor Watch'}
+          {isGuardianView ? 'Guardian Live Sync' : 'Corridor Sentinel'}
         </div>
         {state.isDeviated && (
-          <div className="flex items-center gap-1 bg-rose-500/90 backdrop-blur-md text-white px-2.5 py-1 rounded-xl text-[10px] font-bold shadow-sm animate-pulse">
+          <div className="flex items-center gap-1 bg-rose-500/90 backdrop-blur-md text-white px-2.5 py-1 rounded-xl text-[10px] font-bold shadow-sm animate-pulse pointer-events-auto">
             <AlertTriangle className="w-3 h-3" /> Off-route +{state.deviationDistanceMeters}m
           </div>
         )}
       </div>
 
-      {/* Destination */}
-      <div className="absolute top-2.5 right-2.5 z-[400] bg-white/90 backdrop-blur-md border border-white/60 px-2.5 py-1.5 rounded-xl text-[11px] shadow-sm pointer-events-none">
+      {/* Destination Badge */}
+      <div className="absolute top-2.5 right-2.5 z-[400] bg-white/95 backdrop-blur-md border border-white/60 px-2.5 py-1.5 rounded-xl text-[11px] shadow-sm pointer-events-none">
         <div className="text-[9px] text-slate-400 font-medium">Destination</div>
         <div className="font-bold text-slate-800 flex items-center gap-1">
-          <MapPin className="w-2.5 h-2.5 text-purple-600" /> VIT Pune
+          <MapPin className="w-2.5 h-2.5 text-purple-600" /> VIT Pune Bibwewadi
         </div>
       </div>
 
-      {/* Controls */}
+      {/* Controls Bar */}
       {showControls && (
-        <div className="absolute bottom-2.5 left-2.5 z-[400] flex gap-1.5">
-          <button onClick={() => mapInstance.current?.panTo(state.currentCoordinates, { animate: true })}
-            className="flex items-center gap-1 bg-white/90 backdrop-blur-md border border-white/60 px-2 py-1.5 rounded-xl text-[11px] font-semibold text-slate-700 shadow-sm hover:bg-white transition">
+        <div className="absolute bottom-2.5 left-2.5 z-[400] flex flex-wrap gap-1.5">
+          <button
+            onClick={() => mapInstance.current?.panTo(state.currentCoordinates, { animate: true })}
+            className="flex items-center gap-1 bg-white/95 backdrop-blur-md border border-white/60 px-2 py-1.5 rounded-xl text-[11px] font-semibold text-slate-700 shadow-sm hover:bg-white transition active:scale-95"
+          >
             <Crosshair className="w-3 h-3 text-purple-600" /> Center
           </button>
-          <button onClick={() => normalPoly.current && mapInstance.current?.fitBounds(normalPoly.current.getBounds(), { padding: [30, 30] })}
-            className="flex items-center gap-1 bg-white/90 backdrop-blur-md border border-white/60 px-2 py-1.5 rounded-xl text-[11px] font-semibold text-slate-700 shadow-sm hover:bg-white transition">
+
+          <button
+            onClick={() => normalPoly.current && mapInstance.current?.fitBounds(normalPoly.current.getBounds(), { padding: [30, 30] })}
+            className="flex items-center gap-1 bg-white/95 backdrop-blur-md border border-white/60 px-2 py-1.5 rounded-xl text-[11px] font-semibold text-slate-700 shadow-sm hover:bg-white transition active:scale-95"
+          >
             <Compass className="w-3 h-3 text-indigo-600" /> Route
+          </button>
+
+          <button
+            onClick={() => setShowHeatmap(!showHeatmap)}
+            className={`flex items-center gap-1 px-2 py-1.5 rounded-xl text-[11px] font-bold shadow-sm transition active:scale-95 backdrop-blur-md ${
+              showHeatmap
+                ? 'bg-purple-600 text-white shadow-purple-500/25'
+                : 'bg-white/95 text-slate-700 hover:bg-white border border-white/60'
+            }`}
+          >
+            <Layers className="w-3 h-3" />
+            <span>{showHeatmap ? 'Heatmap: ON' : 'Heatmap'}</span>
           </button>
         </div>
       )}
