@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { SafetyProvider, useSafety } from './context/SafetyContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { TravelerView } from './components/Traveler/TravelerView';
 import { GuardianDashboard } from './components/Guardian/GuardianDashboard';
 import { ArchitectureModal } from './components/Vision/ArchitectureModal';
+import { ThemeSwitcher } from './components/Navigation/ThemeSwitcher';
 import { Shield, Smartphone, ShieldCheck, LayoutTemplate, Sparkles, Volume2, VolumeX } from 'lucide-react';
 
 type ViewMode = 'split' | 'traveler' | 'guardian';
@@ -24,13 +26,13 @@ const MainAppContent: React.FC = () => {
               <Shield className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-sm font-bold text-white tracking-tight">SafeTransit</h1>
-              <p className="text-[10px] text-white/60 hidden sm:block">Women's Predictive Safety · Pune</p>
+              <h1 className="text-sm font-bold text-main tracking-tight">SafeTransit</h1>
+              <p className="text-[10px] text-sub hidden sm:block">Women's Predictive Safety · Pune</p>
             </div>
           </div>
 
           {/* View Switcher */}
-          <div className="flex items-center gap-1 bg-white/10 border border-white/20 rounded-2xl p-1">
+          <div className="flex items-center gap-1 glass-sm rounded-2xl p-1">
             {([
               { id: 'split', label: 'Split View', icon: <LayoutTemplate className="w-3.5 h-3.5" /> },
               { id: 'traveler', label: 'Traveler', icon: <Smartphone className="w-3.5 h-3.5" /> },
@@ -42,7 +44,7 @@ const MainAppContent: React.FC = () => {
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                   viewMode === id
                     ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-white/70 hover:text-white hover:bg-white/10'
+                    : 'text-sub hover:text-main hover:bg-white/10'
                 }`}
               >
                 {icon}
@@ -51,20 +53,24 @@ const MainAppContent: React.FC = () => {
             ))}
           </div>
 
-          {/* Right Controls */}
+          {/* Right Controls: Theme Switcher + AI Vision + Sound */}
           <div className="flex items-center gap-2">
+            <ThemeSwitcher />
+
             <button
               onClick={() => setIsVisionModalOpen(true)}
-              className="glass-sm flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white hover:bg-white/20 transition"
+              className="glass-sm flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-main hover:bg-white/20 transition"
             >
-              <Sparkles className="w-3.5 h-3.5 text-purple-200" />
+              <Sparkles className="w-3.5 h-3.5 text-purple-300" />
               <span className="hidden sm:inline">AI Vision</span>
             </button>
+
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
-              className="glass-sm p-2 rounded-xl text-white/70 hover:text-white hover:bg-white/20 transition"
+              title={soundEnabled ? 'Mute Alert Audio' : 'Unmute Alert Audio'}
+              className="glass-sm p-2 rounded-xl text-sub hover:text-main hover:bg-white/20 transition"
             >
-              {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+              {soundEnabled ? <Volume2 className="w-4 h-4 text-emerald-400" /> : <VolumeX className="w-4 h-4 text-sub" />}
             </button>
           </div>
         </div>
@@ -93,7 +99,7 @@ const MainAppContent: React.FC = () => {
       </main>
 
       {/* ── Footer ── */}
-      <footer className="text-center text-[11px] text-white/40 py-4">
+      <footer className="text-center text-[11px] text-muted-c py-4">
         SafeTransit MVP · Pune Swargate → VIT Bibwewadi
       </footer>
 
@@ -103,15 +109,17 @@ const MainAppContent: React.FC = () => {
 };
 
 const SectionLabel: React.FC<{ icon: React.ReactNode; text: string }> = ({ icon, text }) => (
-  <div className="flex items-center gap-1.5 mb-2 px-1 text-white/60 text-[11px] font-semibold uppercase tracking-wider">
+  <div className="flex items-center gap-1.5 mb-2 px-1 text-sub text-[11px] font-semibold uppercase tracking-wider">
     {icon}{text}
   </div>
 );
 
 export const App: React.FC = () => (
-  <SafetyProvider>
-    <MainAppContent />
-  </SafetyProvider>
+  <ThemeProvider>
+    <SafetyProvider>
+      <MainAppContent />
+    </SafetyProvider>
+  </ThemeProvider>
 );
 
 export default App;

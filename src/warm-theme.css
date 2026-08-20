@@ -1,0 +1,15 @@
+/* Higher-contrast warm theme overrides. */
+:root,
+[data-theme="warm"] {
+  --bg-gradient: linear-gradient(140deg, #7f1d45 0%, #9d174d 35%, #7e22ce 68%, #4c1d95 100%);
+  --glass-bg: rgba(41, 12, 48, 0.54);
+  --glass-border: rgba(255, 231, 241, 0.36);
+  --glass-shadow: 0 10px 36px rgba(34, 5, 29, 0.28);
+  --glass-sm-bg: rgba(54, 15, 57, 0.46);
+  --glass-sm-border: rgba(255, 231, 241, 0.27);
+  --glass-dark-bg: rgba(35, 8, 35, 0.78);
+  --glass-dark-border: rgba(255, 231, 241, 0.20);
+  --text-sub: #ffe4ef;
+  --text-muted: #fbcfe8;
+  --accent-color: #fde68a;
+}
