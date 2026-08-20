@@ -1,15 +1,71 @@
-/* Higher-contrast warm theme overrides. */
+/* Warm is intentionally a daylight theme: peach-tinted, light, and high contrast. */
 :root,
 [data-theme="warm"] {
-  --bg-gradient: linear-gradient(140deg, #7f1d45 0%, #9d174d 35%, #7e22ce 68%, #4c1d95 100%);
-  --glass-bg: rgba(41, 12, 48, 0.54);
-  --glass-border: rgba(255, 231, 241, 0.36);
-  --glass-shadow: 0 10px 36px rgba(34, 5, 29, 0.28);
-  --glass-sm-bg: rgba(54, 15, 57, 0.46);
-  --glass-sm-border: rgba(255, 231, 241, 0.27);
-  --glass-dark-bg: rgba(35, 8, 35, 0.78);
-  --glass-dark-border: rgba(255, 231, 241, 0.20);
-  --text-sub: #ffe4ef;
-  --text-muted: #fbcfe8;
-  --accent-color: #fde68a;
+  color-scheme: light;
+  --bg-gradient:
+    radial-gradient(circle at 8% 4%, rgba(255, 255, 255, 0.92) 0 9%, transparent 30%),
+    linear-gradient(135deg, #fff7ed 0%, #fed7aa 48%, #fbcfe8 100%);
+  --glass-bg: rgba(255, 253, 250, 0.80);
+  --glass-border: rgba(255, 255, 255, 0.92);
+  --glass-shadow: 0 14px 34px rgba(124, 45, 18, 0.13);
+  --glass-sm-bg: rgba(255, 250, 246, 0.72);
+  --glass-sm-border: rgba(154, 52, 18, 0.14);
+  --glass-dark-bg: rgba(255, 251, 247, 0.90);
+  --glass-dark-border: rgba(154, 52, 18, 0.14);
+  --text-main: #3b1026;
+  --text-sub: #6b2945;
+  --text-muted: #8b5269;
+  --accent-color: #9a3412;
+  --pill-active-bg: #7c2d12;
+  --pill-active-text: #ffffff;
+  --tab-active-bg: #7c2d12;
+  --tab-active-text: #ffffff;
+  --select-bg: #fffaf6;
+  --select-text: #3b1026;
+}
+
+/* The guardian console originally used white typography for the dark design.
+   Keep that information readable on Warm's light glass surfaces. */
+[data-theme="warm"] .glass .text-white,
+[data-theme="warm"] .glass .text-white\/50,
+[data-theme="warm"] .glass .text-white\/60,
+[data-theme="warm"] .glass .text-white\/40,
+[data-theme="warm"] .glass .text-white\/30 {
+  color: var(--text-main) !important;
+}
+
+[data-theme="warm"] .glass .text-white\/50,
+[data-theme="warm"] .glass .text-white\/60 {
+  color: var(--text-sub) !important;
+}
+
+[data-theme="warm"] .glass .text-white\/40,
+[data-theme="warm"] .glass .text-white\/30 {
+  color: var(--text-muted) !important;
+}
+
+/* Emergency and primary action buttons retain white lettering for instant recognition. */
+[data-theme="warm"] [class*="bg-rose"] .text-white,
+[data-theme="warm"] [class*="bg-emerald"] .text-white,
+[data-theme="warm"] [class*="bg-purple"] .text-white,
+[data-theme="warm"] [class*="bg-rose"].text-white,
+[data-theme="warm"] [class*="bg-emerald"].text-white,
+[data-theme="warm"] [class*="bg-purple"].text-white {
+  color: #ffffff !important;
+}
+
+[data-theme="warm"] .glass-solid {
+  color: var(--text-main);
+  background: rgba(255, 253, 250, 0.96);
+}
+
+[data-theme="warm"] ::selection {
+  color: #ffffff;
+  background: #9a3412;
+}
+
+button:focus-visible,
+select:focus-visible {
+  outline: 3px solid rgba(124, 45, 18, 0.45);
+  outline-offset: 3px;
 }
