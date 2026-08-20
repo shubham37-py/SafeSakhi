@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type ThemeMode = 'warm' | 'dark';
+export type ThemeMode = 'warm' | 'light' | 'dark';
 
 interface ThemeContextType {
   theme: ThemeMode;
@@ -12,7 +12,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<ThemeMode>(() => {
     const saved = localStorage.getItem('safetransit_theme') as ThemeMode;
-    return saved === 'dark' || saved === 'warm' ? saved : 'warm';
+    return saved === 'light' || saved === 'dark' || saved === 'warm' ? saved : 'warm';
   });
 
   const setTheme = (newTheme: ThemeMode) => {
