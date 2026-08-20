@@ -1,14 +1,13 @@
 import React from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import type { ThemeMode } from '../../context/ThemeContext';
-import { Moon, Flame, Sun } from 'lucide-react';
+import { Moon, Flame } from 'lucide-react';
 
 export const ThemeSwitcher: React.FC = () => {
   const { theme, setTheme } = useTheme();
 
   const themes: { id: ThemeMode; label: string; icon: React.ReactNode }[] = [
     { id: 'warm', label: 'Warm', icon: <Flame className="w-3.5 h-3.5 text-amber-500" /> },
-    { id: 'light', label: 'Light', icon: <Sun className="w-3.5 h-3.5 text-sky-500" /> },
     { id: 'dark', label: 'Dark', icon: <Moon className="w-3.5 h-3.5 text-indigo-400" /> },
   ];
 
