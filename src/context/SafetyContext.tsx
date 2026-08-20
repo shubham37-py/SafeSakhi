@@ -36,6 +36,8 @@ interface SafetyContextValue {
   toggleDiscreetMode: () => void;
   soundEnabled: boolean;
   setSoundEnabled: (enabled: boolean) => void;
+  startSiren: () => void;
+  silenceSiren: () => void;
 }
 
 const SafetyContext = createContext<SafetyContextValue | undefined>(undefined);
@@ -63,6 +65,7 @@ export const SafetyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [checkInCountdown, setCheckInCountdown] = useState<number>(12);
   const [isSosTriggered, setIsSosTriggered] = useState<boolean>(false);
   const [sosTriggerReason, setSosTriggerReason] = useState<string>('');
+  const [isSirenActive, setIsSirenActive] = useState<boolean>(false);
   const [evidencePackage, setEvidencePackage] = useState<IncidentEvidence | null>(null);
   const [riskHistory, setRiskHistory] = useState<{ time: string; score: number; level: 'safe' | 'caution' | 'critical' }[]>([
     { time: '22:38', score: 14, level: 'safe' },
@@ -88,6 +91,25 @@ export const SafetyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Broadcast channel for multi-tab sync
   const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
 
+  // Siren Controller
+  const startSiren = useCallback(() => {
+    setIsSirenActive(true);
+    if (soundEnabled) {
+      soundEngine.startContinuousSiren();
+    }
+    if (broadcastChannelRef.current) {
+      broadcastChannelRef.current.postMessage({ type: 'SIREN_STARTED' });
+    }
+  }, [soundEnabled]);
+
+  const silenceSiren = useCallback(() => {
+    setIsSirenActive(false);
+    soundEngine.stopSiren();
+    if (broadcastChannelRef.current) {
+      broadcastChannelRef.current.postMessage({ type: 'SIREN_STOPPED' });
+    }
+  }, []);
+
   useEffect(() => {
     if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
       const channel = new BroadcastChannel(SYNC_CHANNEL_NAME);
@@ -99,10 +121,19 @@ export const SafetyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           setIsSosTriggered(true);
           setSosTriggerReason(payload.reason);
           setEvidencePackage(payload.evidence);
-          if (soundEnabled) soundEngine.playSosAlertTone();
+          setIsSirenActive(true);
+          if (soundEnabled) soundEngine.startContinuousSiren();
         } else if (type === 'EMERGENCY_RESOLVED') {
           setIsSosTriggered(false);
           setEvidencePackage(null);
+          setIsSirenActive(false);
+          soundEngine.stopSiren();
+        } else if (type === 'SIREN_STARTED') {
+          setIsSirenActive(true);
+          if (soundEnabled) soundEngine.startContinuousSiren();
+        } else if (type === 'SIREN_STOPPED') {
+          setIsSirenActive(false);
+          soundEngine.stopSiren();
         }
       };
 
@@ -230,9 +261,10 @@ export const SafetyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setIsSosTriggered(true);
       setSosTriggerReason(reason);
       setEvidencePackage(evidence);
+      setIsSirenActive(true);
 
       if (soundEnabled) {
-        soundEngine.playSosAlertTone();
+        soundEngine.startContinuousSiren();
       }
 
       // Sync across browser tabs via BroadcastChannel
@@ -244,13 +276,13 @@ export const SafetyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
 
       pushAiLog(
-        '🚨 SILENT AUTO-SOS TRIGGERED',
-        `Emergency protocol escalated. Risk reached ${riskEvaluation.totalRisk}/100 with unverified deviation. Telemetry & forensic audio packet dispatched to Guardian.`,
+        '🚨 SILENT AUTO-SOS ESCALATED',
+        `Emergency protocol active. Risk reached ${riskEvaluation.totalRisk}/100. Emergency siren sounding until acknowledged. Forensic evidence dispatched.`,
         riskEvaluation.totalRisk,
         'critical',
         'routeDeviationScore',
         +45,
-        ['SOS Dispatched', 'Evidence Bundled', 'Guardian Alerted']
+        ['SOS Dispatched', 'Continuous Siren Active', 'Guardian Alerted']
       );
     },
     [
@@ -360,6 +392,7 @@ export const SafetyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setIsSosTriggered(false);
     setEvidencePackage(null);
     setIsCheckInActive(false);
+    silenceSiren();
   };
 
   const togglePlayPause = () => setIsPlaying((p) => !p);
@@ -392,6 +425,7 @@ export const SafetyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         -35,
         ['Corridor Restored']
       );
+      silenceSiren();
     }
   };
 
@@ -422,15 +456,17 @@ export const SafetyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const respondToCheckIn = (isSafe: boolean) => {
     setIsCheckInActive(false);
+    silenceSiren(); // Reaction received! Stop siren immediately.
+
     if (isSafe) {
       pushAiLog(
         '✅ Commuter Verified Safe',
-        'Traveler responded "I am Safe" to periodic prompt. Risk normalized.',
+        'Traveler responded "I am Safe". Alarm silenced and risk normalized.',
         18,
         'safe',
         'unresponsivenessScore',
         -40,
-        ['User Responsive', 'Safe Confirmation']
+        ['User Responsive', 'Safe Confirmation', 'Siren Silenced']
       );
     } else {
       // User tapped Panic/Help
@@ -448,14 +484,16 @@ export const SafetyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setIsDeviated(false);
     setIsStoppedUnusually(false);
     setIsCheckInActive(false);
+    silenceSiren(); // Reaction received! Silence siren.
+
     pushAiLog(
       '🛡️ Emergency Resolved by Guardian',
-      'Safety status reset to nominal. Continuous background monitoring remains active.',
+      'Safety status reset to nominal. Emergency alarm silenced.',
       14,
       'safe',
       'routeDeviationScore',
       -60,
-      ['Resolved Safe', 'Guardian Verified']
+      ['Resolved Safe', 'Guardian Verified', 'Siren Silenced']
     );
 
     if (broadcastChannelRef.current) {
@@ -471,6 +509,7 @@ export const SafetyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setIsSosTriggered(false);
     setEvidencePackage(null);
     setIsCheckInActive(false);
+    silenceSiren();
     setBatteryLevelState(68);
     setCrowdDensityScoreInput(30);
     setSimulatedHour(22);
@@ -511,6 +550,7 @@ export const SafetyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     checkInCountdown,
     isSosTriggered,
     sosTriggerReason,
+    isSirenActive,
     evidencePackage,
     riskHistory,
     aiExplanationFeed,
@@ -541,6 +581,8 @@ export const SafetyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         toggleDiscreetMode,
         soundEnabled,
         setSoundEnabled,
+        startSiren,
+        silenceSiren,
       }}
     >
       {children}

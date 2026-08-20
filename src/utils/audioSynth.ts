@@ -1,7 +1,12 @@
-// SafeTransit Web Audio API Sound Synthesizer & Synthetic Ambient Noise Generator
+// SafeTransit Web Audio API Sound Synthesizer & Emergency Siren Engine
 
 class AudioEngine {
   private ctx: AudioContext | null = null;
+  private isSirenRunning: boolean = false;
+  private sirenOsc: OscillatorNode | null = null;
+  private sirenLfo: OscillatorNode | null = null;
+  private sirenGain: GainNode | null = null;
+  private sirenLfoGain: GainNode | null = null;
 
   private initCtx() {
     if (!this.ctx && typeof window !== 'undefined') {
@@ -70,32 +75,95 @@ class AudioEngine {
     }
   }
 
-  // Loud Police/Panic Siren for manual escalation
-  playPanicSiren() {
+  // Continuous Police/Emergency Siren that loops until explicitly stopped by user reaction
+  startContinuousSiren() {
+    if (this.isSirenRunning) return;
+
     try {
       this.initCtx();
       if (!this.ctx) return;
 
       const now = this.ctx.currentTime;
+
+      // 1. Main Siren Tone Oscillator (Sweeps between 650Hz and 1150Hz)
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
 
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(600, now);
-      osc.frequency.linearRampToValueAtTime(960, now + 0.3);
-      osc.frequency.linearRampToValueAtTime(600, now + 0.6);
+      // 2. Low Frequency Oscillator (LFO) to modulate pitch continuously (wail effect: 1.2 Hz cycle)
+      const lfo = this.ctx.createOscillator();
+      const lfoGain = this.ctx.createGain();
 
-      gain.gain.setValueAtTime(0.3, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+      osc.type = 'triangle'; // Rich, piercing emergency tone
+      osc.frequency.setValueAtTime(850, now);
+
+      lfo.type = 'sine';
+      lfo.frequency.setValueAtTime(1.4, now); // ~1.4 sweeps per second
+      lfoGain.gain.setValueAtTime(280, now); // Modulates frequency by +/- 280 Hz (570Hz -> 1130Hz)
+
+      lfo.connect(lfoGain);
+      lfoGain.connect(osc.frequency);
+
+      // Volume Gain with soft attack ramp
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.25, now + 0.1);
 
       osc.connect(gain);
       gain.connect(this.ctx.destination);
 
       osc.start(now);
-      osc.stop(now + 0.85);
+      lfo.start(now);
+
+      this.sirenOsc = osc;
+      this.sirenLfo = lfo;
+      this.sirenGain = gain;
+      this.sirenLfoGain = lfoGain;
+      this.isSirenRunning = true;
     } catch {
-      // Ignore
+      // Ignore audio error
     }
+  }
+
+  // Stop siren immediately on any user reaction
+  stopSiren() {
+    if (!this.isSirenRunning) return;
+
+    try {
+      if (this.ctx && this.sirenGain) {
+        const now = this.ctx.currentTime;
+        this.sirenGain.gain.linearRampToValueAtTime(0.0001, now + 0.08);
+
+        setTimeout(() => {
+          try {
+            this.sirenOsc?.stop();
+            this.sirenLfo?.stop();
+            this.sirenOsc?.disconnect();
+            this.sirenLfo?.disconnect();
+            this.sirenGain?.disconnect();
+            this.sirenLfoGain?.disconnect();
+          } catch {
+            // Safe cleanup
+          }
+          this.sirenOsc = null;
+          this.sirenLfo = null;
+          this.sirenGain = null;
+          this.sirenLfoGain = null;
+          this.isSirenRunning = false;
+        }, 100);
+      } else {
+        this.isSirenRunning = false;
+      }
+    } catch {
+      this.isSirenRunning = false;
+    }
+  }
+
+  // Backwards compatible method name (starts continuous siren)
+  playPanicSiren() {
+    this.startContinuousSiren();
+  }
+
+  getSirenStatus(): boolean {
+    return this.isSirenRunning;
   }
 }
 

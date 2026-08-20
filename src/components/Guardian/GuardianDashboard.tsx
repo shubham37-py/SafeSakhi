@@ -1,17 +1,25 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useSafety } from '../../context/SafetyContext';
 import { SafeTransitMap } from '../Map/SafeTransitMap';
-import { soundEngine } from '../../utils/audioSynth';
 import {
   ShieldAlert, ShieldCheck, Radio, Phone, Siren,
   FileText, CheckCircle2, AlertTriangle, Battery,
-  MapPin, Clock, Activity, Mic, Lock, Volume2,
+  MapPin, Clock, Activity, Mic, Lock, Volume2, VolumeX,
   Download, Copy, BellRing, Wifi, Check,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export const GuardianDashboard: React.FC = () => {
-  const { state, activeRoute, riskEvaluation, resolveEmergency, triggerCheckIn } = useSafety();
+  const {
+    state,
+    activeRoute,
+    riskEvaluation,
+    resolveEmergency,
+    triggerCheckIn,
+    startSiren,
+    silenceSiren,
+  } = useSafety();
+
   const [showEvidence, setShowEvidence] = useState(false);
   const [dispatchConfirmed, setDispatchConfirmed] = useState(false);
   const [pingSent, setPingSent] = useState(false);
@@ -30,6 +38,14 @@ export const GuardianDashboard: React.FC = () => {
     triggerCheckIn();
     setPingSent(true);
     setTimeout(() => setPingSent(false), 3000);
+  };
+
+  const handleToggleSiren = () => {
+    if (state.isSirenActive) {
+      silenceSiren();
+    } else {
+      startSiren();
+    }
   };
 
   const handleCopyJSON = () => {
@@ -253,10 +269,23 @@ export const GuardianDashboard: React.FC = () => {
               </button>
 
               <button
-                onClick={() => soundEngine.playPanicSiren()}
-                className="glass-sm py-2.5 rounded-xl text-main text-xs font-bold flex items-center justify-center gap-1 hover:bg-white/20 transition active:scale-95"
+                onClick={handleToggleSiren}
+                className={`py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition active:scale-95 ${
+                  state.isSirenActive
+                    ? 'bg-rose-600 text-white shadow-md animate-pulse'
+                    : 'glass-sm text-main hover:bg-white/20'
+                }`}
+                title={state.isSirenActive ? 'Silence Alarm' : 'Sound continuous emergency siren'}
               >
-                <Volume2 className="w-3.5 h-3.5 text-rose-500" /> Siren
+                {state.isSirenActive ? (
+                  <>
+                    <VolumeX className="w-3.5 h-3.5" /> Stop Siren
+                  </>
+                ) : (
+                  <>
+                    <Volume2 className="w-3.5 h-3.5 text-rose-500" /> Siren
+                  </>
+                )}
               </button>
             </div>
 

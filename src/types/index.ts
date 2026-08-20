@@ -105,7 +105,6 @@ export interface RiskComputationResult {
 }
 
 export interface SafetyState {
-
   activeRouteId: string;
   isPlaying: boolean;
   playbackSpeed: number; // 1, 2, 4
@@ -126,6 +125,7 @@ export interface SafetyState {
   checkInCountdown: number; // seconds remaining
   isSosTriggered: boolean;
   sosTriggerReason: string;
+  isSirenActive: boolean;
   evidencePackage: IncidentEvidence | null;
   riskHistory: { time: string; score: number; level: RiskLevel }[];
   aiExplanationFeed: AIExplanationLog[];

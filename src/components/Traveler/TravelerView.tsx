@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useSafety } from '../../context/SafetyContext';
 import { SafeTransitMap } from '../Map/SafeTransitMap';
 import { RiskScoreHUD } from './RiskScoreHUD';
@@ -7,12 +7,20 @@ import { DemoControlDeck } from './DemoControlDeck';
 import { CheckInModal } from './CheckInModal';
 import { DiscreetMode } from './DiscreetMode';
 import { JourneyTimeline } from './JourneyTimeline';
-import { Shield, Battery, Radio, AlertOctagon, Eye, Map, ShieldCheck, Sliders } from 'lucide-react';
+import { Shield, Battery, Radio, AlertOctagon, Eye, Map, ShieldCheck, Sliders, VolumeX, Siren } from 'lucide-react';
 
 type Tab = 'journey' | 'safety' | 'controls';
 
 export const TravelerView: React.FC = () => {
-  const { state, activeRoute, allRoutes, selectRoute, triggerManualSos, toggleDiscreetMode } = useSafety();
+  const {
+    state,
+    activeRoute,
+    allRoutes,
+    selectRoute,
+    triggerManualSos,
+    toggleDiscreetMode,
+    silenceSiren,
+  } = useSafety();
   const [activeTab, setActiveTab] = useState<Tab>('journey');
 
   const time = `${String(state.simulatedHour).padStart(2, '0')}:${String(state.simulatedMinute).padStart(2, '0')}`;
@@ -73,8 +81,27 @@ export const TravelerView: React.FC = () => {
           </div>
         </div>
 
+        {/* ── Active Siren Reaction Banner ── */}
+        {state.isSirenActive && (
+          <div className="mx-3 mt-3 bg-rose-600 text-white rounded-2xl p-3.5 shadow-xl animate-pulse flex items-center justify-between gap-2 border border-rose-400">
+            <div className="flex items-center gap-2">
+              <Siren className="w-5 h-5 animate-bounce text-white shrink-0" />
+              <div>
+                <div className="text-xs font-black uppercase tracking-wider">EMERGENCY SIREN ACTIVE</div>
+                <div className="text-[10px] text-rose-100">Sounding until reaction received</div>
+              </div>
+            </div>
+            <button
+              onClick={silenceSiren}
+              className="px-3 py-1.5 bg-white text-rose-700 hover:bg-rose-50 font-black text-xs rounded-xl shadow-md flex items-center gap-1 transition active:scale-95 shrink-0"
+            >
+              <VolumeX className="w-3.5 h-3.5" /> Silence
+            </button>
+          </div>
+        )}
+
         {/* ── SOS Banner ── */}
-        {state.isSosTriggered && (
+        {state.isSosTriggered && !state.isSirenActive && (
           <div className="mx-3 mt-3 bg-rose-500/25 border border-rose-400/40 rounded-2xl p-3 animate-pulse">
             <div className="flex items-center gap-2 mb-1">
               <AlertOctagon className="w-4 h-4 text-rose-400" />
