@@ -5,7 +5,7 @@ import { TravelerView } from './components/Traveler/TravelerView';
 import { GuardianDashboard } from './components/Guardian/GuardianDashboard';
 import { ArchitectureModal } from './components/Vision/ArchitectureModal';
 import { ThemeSwitcher } from './components/Navigation/ThemeSwitcher';
-import { Shield, Smartphone, ShieldCheck, LayoutTemplate, Sparkles, Volume2, VolumeX } from 'lucide-react';
+import { Smartphone, ShieldCheck, LayoutTemplate, Sparkles, Volume2, VolumeX } from 'lucide-react';
 
 type ViewMode = 'split' | 'traveler' | 'guardian';
 
@@ -22,9 +22,7 @@ const MainAppContent: React.FC = () => {
 
           {/* Brand */}
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center shadow-sm">
-              <Shield className="w-5 h-5 text-white" />
-            </div>
+            <img src="/safetransit-logo.svg" alt="SafeTransit" className="w-10 h-10 rounded-2xl shadow-sm ring-1 ring-white/60" />
             <div>
               <h1 className="text-sm font-bold text-main tracking-tight">SafeTransit</h1>
               <p className="text-[10px] text-sub hidden sm:block">Women's Predictive Safety · Pune</p>

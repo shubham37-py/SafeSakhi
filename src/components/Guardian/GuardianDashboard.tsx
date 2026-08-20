@@ -37,9 +37,7 @@ export const GuardianDashboard: React.FC = () => {
       {/* Header Card */}
       <div className="glass rounded-3xl p-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center">
-            <Radio className="w-5 h-5 text-white animate-pulse" />
-          </div>
+          <img src="/safetransit-logo.svg" alt="SafeTransit" className="w-10 h-10 rounded-2xl shadow-sm ring-1 ring-white/60" />
           <div>
             <h2 className="text-base font-bold text-white">Guardian Console</h2>
             <p className="text-[11px] text-white/50">Tracking: <span className="text-purple-300 font-bold">Ananya Sharma · ST-9428</span></p>

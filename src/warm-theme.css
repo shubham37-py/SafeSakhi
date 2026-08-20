@@ -69,3 +69,12 @@ select:focus-visible {
   outline: 3px solid rgba(124, 45, 18, 0.45);
   outline-offset: 3px;
 }
+
+/* Replace the legacy Traveler header shield with the shared SafeTransit mark. */
+.w-9.h-9.rounded-2xl.bg-white\/20.border-white\/30 > svg {
+  display: none;
+}
+
+.w-9.h-9.rounded-2xl.bg-white\/20.border-white\/30 {
+  background: #fffaf6 url('/safetransit-logo.svg') center / cover no-repeat;
+}
