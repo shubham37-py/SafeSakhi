@@ -7,6 +7,8 @@ import type {
   AIExplanationLog,
 } from '../types';
 import { PUNE_PRESET_ROUTES } from '../data/presetRoutes';
+import { ALL_PUNE_STOPS, buildRouteBetweenStops } from '../services/routeBuilder';
+import type { StopInfo } from '../services/routeBuilder';
 import {
   evaluateJourneyRisk,
   calculateDeviationFromRoute,
@@ -19,8 +21,13 @@ interface SafetyContextValue {
   activeRoute: PresetRoute;
   riskEvaluation: RiskComputationResult;
   allRoutes: PresetRoute[];
+  fromStop: string;
+  toStop: string;
+  allStops: StopInfo[];
   // Controls
   selectRoute: (routeId: string) => void;
+  setRouteEndpoints: (from: string, to: string) => void;
+  swapEndpoints: () => void;
   togglePlayPause: () => void;
   setPlaybackSpeed: (speed: number) => void;
   triggerRouteDeviation: (enable?: boolean) => void;
@@ -46,8 +53,13 @@ const SYNC_CHANNEL_NAME = 'safetransit_telemetry_bus';
 
 export const SafetyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [allRoutes] = useState<PresetRoute[]>(PUNE_PRESET_ROUTES);
-  const [activeRouteId, setActiveRouteId] = useState<string>('pune-swargate-vit');
-  const activeRoute = allRoutes.find((r) => r.id === activeRouteId) || allRoutes[0];
+  const [allStops] = useState<StopInfo[]>(ALL_PUNE_STOPS);
+  const [fromStop, setFromStop] = useState<string>('Swargate Bus Terminal & Metro');
+  const [toStop, setToStop] = useState<string>('VIT Pune Main Campus');
+  const [activeRoute, setActiveRoute] = useState<PresetRoute>(() =>
+    buildRouteBetweenStops('Swargate Bus Terminal & Metro', 'VIT Pune Main Campus')
+  );
+  const activeRouteId = activeRoute.id;
 
   // Core Simulation State
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
@@ -382,9 +394,12 @@ export const SafetyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     triggerSilentAutoSos,
   ]);
 
-  // Demo Control Handlers
-  const selectRoute = (routeId: string) => {
-    setActiveRouteId(routeId);
+  // Route Endpoint Handlers
+  const setRouteEndpoints = useCallback((newFrom: string, newTo: string) => {
+    setFromStop(newFrom);
+    setToStop(newTo);
+    const newRoute = buildRouteBetweenStops(newFrom, newTo);
+    setActiveRoute(newRoute);
     setProgressFraction(0.0);
     setIsDeviated(false);
     setIsStoppedUnusually(false);
@@ -393,7 +408,41 @@ export const SafetyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setEvidencePackage(null);
     setIsCheckInActive(false);
     silenceSiren();
-  };
+
+    pushAiLog(
+      '📍 Journey Route Configured',
+      `Active route set from "${newFrom}" to "${newTo}" (${newRoute.distanceKm} km, ~${newRoute.estimatedDurationMin} min). Telemetry active.`,
+      14,
+      'safe',
+      'routeDeviationScore',
+      0,
+      [newRoute.transitMode, `${newRoute.distanceKm} km`, `${newRoute.waypoints.length} Stops`]
+    );
+  }, [silenceSiren, pushAiLog]);
+
+  const swapEndpoints = useCallback(() => {
+    setRouteEndpoints(toStop, fromStop);
+  }, [toStop, fromStop, setRouteEndpoints]);
+
+  // Demo Control Handlers
+  const selectRoute = useCallback((routeId: string) => {
+    const preset = allRoutes.find((r) => r.id === routeId);
+    if (preset && preset.waypoints.length >= 2) {
+      const newFrom = preset.waypoints[0].name;
+      const newTo = preset.waypoints[preset.waypoints.length - 1].name;
+      setRouteEndpoints(newFrom, newTo);
+    } else {
+      setActiveRoute(preset || allRoutes[0]);
+      setProgressFraction(0.0);
+      setIsDeviated(false);
+      setIsStoppedUnusually(false);
+      setUnusualStopDurationSec(0);
+      setIsSosTriggered(false);
+      setEvidencePackage(null);
+      setIsCheckInActive(false);
+      silenceSiren();
+    }
+  }, [allRoutes, setRouteEndpoints, silenceSiren]);
 
   const togglePlayPause = () => setIsPlaying((p) => !p);
 
@@ -565,7 +614,12 @@ export const SafetyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         activeRoute,
         riskEvaluation,
         allRoutes,
+        fromStop,
+        toStop,
+        allStops,
         selectRoute,
+        setRouteEndpoints,
+        swapEndpoints,
         togglePlayPause,
         setPlaybackSpeed,
         triggerRouteDeviation,

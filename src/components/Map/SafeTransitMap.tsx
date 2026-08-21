@@ -42,7 +42,7 @@ export const SafeTransitMap: React.FC<SafeTransitMapProps> = ({
     L.control.zoom({ position: 'bottomright' }).addTo(map);
     mapInstance.current = map;
     return () => { map.remove(); mapInstance.current = null; };
-  }, [activeRoute]);
+  }, []);
 
   // Update route layers
   useEffect(() => {
