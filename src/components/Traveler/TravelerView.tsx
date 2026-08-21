@@ -1,5 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { useSafety } from '../../context/SafetyContext';
+import { GROUPED_STOPS } from '../../services/routeBuilder';
 import { SafeTransitMap } from '../Map/SafeTransitMap';
 import { RiskScoreHUD } from './RiskScoreHUD';
 import { AIExplanationFeed } from './AIExplanationFeed';
@@ -7,7 +8,6 @@ import { DemoControlDeck } from './DemoControlDeck';
 import { CheckInModal } from './CheckInModal';
 import { DiscreetMode } from './DiscreetMode';
 import { JourneyTimeline } from './JourneyTimeline';
-import ShakeDetector from '../ShakeDetector/ShakeDetector';
 import {
   Shield,
   Battery,
@@ -19,8 +19,9 @@ import {
   Sliders,
   VolumeX,
   Siren,
-  Smartphone
+  Smartphone,
 } from 'lucide-react';
+import ShakeDetector from '../ShakeDetector/ShakeDetector';
 
 type Tab = 'journey' | 'safety' | 'controls';
 
@@ -29,6 +30,10 @@ export const TravelerView: React.FC = () => {
     state,
     activeRoute,
     allRoutes,
+    fromStop,
+    toStop,
+    setRouteEndpoints,
+    swapEndpoints,
     selectRoute,
     triggerManualSos,
     toggleDiscreetMode,
@@ -233,28 +238,20 @@ export const TravelerView: React.FC = () => {
           {/* ─── JOURNEY TAB ─── */}
           {activeTab === 'journey' && (
             <div className="space-y-3 animate-fadeIn">
-
+              {/* Route Selector Card */}
               <div className="glass rounded-2xl p-3.5">
-                <p className="text-[11px] text-muted-c font-bold uppercase tracking-widest mb-2">
-                  Active Route
-                </p>
-
+                <p className="text-[11px] text-muted-c font-bold uppercase tracking-widest mb-2">Active Route</p>
                 <select
                   value={activeRoute.id}
                   onChange={(e) => selectRoute(e.target.value)}
                   className="w-full glass-sm border border-white/25 text-main font-bold rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/50 cursor-pointer mb-2.5"
                 >
                   {allRoutes.map((r) => (
-                    <option
-                      key={r.id}
-                      value={r.id}
-                      className="bg-slate-900 text-white"
-                    >
+                    <option key={r.id} value={r.id} className="bg-slate-900 text-white">
                       {r.title}
                     </option>
                   ))}
                 </select>
-
                 <div className="grid grid-cols-3 gap-2 text-center">
                   {[
                     {
