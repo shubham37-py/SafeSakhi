@@ -1,5 +1,6 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useSafety } from '../../context/SafetyContext';
+import { GROUPED_STOPS } from '../../services/routeBuilder';
 import { SafeTransitMap } from '../Map/SafeTransitMap';
 import { RiskScoreHUD } from './RiskScoreHUD';
 import { AIExplanationFeed } from './AIExplanationFeed';
@@ -7,7 +8,7 @@ import { DemoControlDeck } from './DemoControlDeck';
 import { CheckInModal } from './CheckInModal';
 import { DiscreetMode } from './DiscreetMode';
 import { JourneyTimeline } from './JourneyTimeline';
-import { Shield, Battery, Radio, AlertOctagon, Eye, Map, ShieldCheck, Sliders, VolumeX, Siren } from 'lucide-react';
+import { Shield, Battery, Radio, AlertOctagon, Eye, Map, ShieldCheck, Sliders, VolumeX, Siren, MapPin, ArrowUpDown } from 'lucide-react';
 
 type Tab = 'journey' | 'safety' | 'controls';
 
@@ -16,6 +17,10 @@ export const TravelerView: React.FC = () => {
     state,
     activeRoute,
     allRoutes,
+    fromStop,
+    toStop,
+    setRouteEndpoints,
+    swapEndpoints,
     selectRoute,
     triggerManualSos,
     toggleDiscreetMode,
@@ -137,21 +142,106 @@ export const TravelerView: React.FC = () => {
           {/* ─── 1. JOURNEY TAB ──────────────────────────────────── */}
           {activeTab === 'journey' && (
             <div className="space-y-3 animate-fadeIn">
-              {/* Route Selector Card */}
-              <div className="glass rounded-2xl p-3.5">
-                <p className="text-[11px] text-muted-c font-bold uppercase tracking-widest mb-2">Active Route</p>
-                <select
-                  value={activeRoute.id}
-                  onChange={(e) => selectRoute(e.target.value)}
-                  className="w-full glass-sm border border-white/25 text-main font-bold rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/50 cursor-pointer mb-2.5"
-                >
-                  {allRoutes.map((r) => (
-                    <option key={r.id} value={r.id} className="bg-slate-900 text-white">
-                      {r.title}
-                    </option>
-                  ))}
-                </select>
-                <div className="grid grid-cols-3 gap-2 text-center">
+              {/* Journey Planner (From ➔ To) Card */}
+              <div className="glass rounded-3xl p-4 space-y-3 shadow-lg">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-muted-c font-bold uppercase tracking-widest flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-accent-c" /> Plan Journey
+                  </span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full glass-sm text-sub">
+                    {activeRoute.waypoints.length} Stops
+                  </span>
+                </div>
+
+                {/* From & To Selectors with Swap Button */}
+                <div className="relative space-y-2">
+                  {/* Starting Point (From) */}
+                  <div className="flex items-center gap-2 bg-white/10 dark:bg-white/5 border border-white/20 rounded-2xl p-2.5 transition focus-within:border-emerald-400/60 focus-within:ring-2 focus-within:ring-emerald-400/20">
+                    <div className="w-7 h-7 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center shrink-0">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <label className="block text-[9px] font-black uppercase text-emerald-600 dark:text-emerald-300 tracking-wider">From (Starting Point)</label>
+                      <select
+                        value={fromStop}
+                        onChange={(e) => setRouteEndpoints(e.target.value, toStop)}
+                        className="w-full bg-transparent text-main font-bold text-xs focus:outline-none cursor-pointer truncate"
+                      >
+                        {Object.entries(GROUPED_STOPS).map(([corridorId, group]) => (
+                          <optgroup key={corridorId} label={group.corridorName} className="bg-white text-gray-900 font-bold">
+                            {group.stops.map((stop) => (
+                              <option key={`from-${stop.id}`} value={stop.name} className="bg-white text-black font-normal">
+                                {stop.name}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Swap Button Floating in the middle-right */}
+                  <div className="flex justify-end pr-3 -my-1 z-10 relative">
+                    <button
+                      onClick={swapEndpoints}
+                      title="Swap Starting Point & Destination"
+                      className="w-8 h-8 rounded-full glass-solid border border-white/40 flex items-center justify-center text-accent-c hover:scale-110 active:scale-95 transition-all shadow-md"
+                    >
+                      <ArrowUpDown className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Ending Point (To) */}
+                  <div className="flex items-center gap-2 bg-white/10 dark:bg-white/5 border border-white/20 rounded-2xl p-2.5 transition focus-within:border-purple-400/60 focus-within:ring-2 focus-within:ring-purple-400/20">
+                    <div className="w-7 h-7 rounded-xl bg-purple-500/20 border border-purple-400/40 flex items-center justify-center shrink-0">
+                      <MapPin className="w-3.5 h-3.5 text-purple-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <label className="block text-[9px] font-black uppercase text-purple-600 dark:text-purple-300 tracking-wider">To (Destination)</label>
+                      <select
+                        value={toStop}
+                        onChange={(e) => setRouteEndpoints(fromStop, e.target.value)}
+                        className="w-full bg-transparent text-main font-bold text-xs focus:outline-none cursor-pointer truncate"
+                      >
+                        {Object.entries(GROUPED_STOPS).map(([corridorId, group]) => (
+                          <optgroup key={corridorId} label={group.corridorName} className="bg-white text-gray-900 font-bold">
+                            {group.stops.map((stop) => (
+                              <option key={`to-${stop.id}`} value={stop.name} className="bg-white text-black font-normal">
+                                {stop.name}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Preset Corridors */}
+                <div className="pt-1">
+                  <p className="text-[10px] text-muted-c font-semibold mb-1.5">Popular Corridors:</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {allRoutes.map((r) => {
+                      const isSelected = activeRoute.origin === r.origin && activeRoute.destination === r.destination;
+                      return (
+                        <button
+                          key={r.id}
+                          onClick={() => selectRoute(r.id)}
+                          className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all ${
+                            isSelected
+                              ? 'bg-purple-600 text-white shadow-sm ring-2 ring-purple-400/40'
+                              : 'glass-sm text-sub hover:text-main hover:bg-white/20'
+                          }`}
+                        >
+                          {r.origin.split(' ')[0]} ➔ {r.destination.split(' ')[0]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Metrics */}
+                <div className="grid grid-cols-3 gap-2 text-center pt-2 border-t border-white/10">
                   {[
                     { label: 'Distance', value: `${activeRoute.distanceKm} km` },
                     { label: 'Mode', value: activeRoute.transitMode },
