@@ -42,6 +42,8 @@ export const TravelerView: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<Tab>('journey');
   const [shakeEnabled, setShakeEnabled] = useState(false);
+  const [shakeStatus, setShakeStatus] = useState('Detection off');
+  const [shakeCount, setShakeCount] = useState(0);
 
   // Enable motion sensor permission and shake detection
   const enableShakeDetection = async () => {
@@ -60,10 +62,26 @@ export const TravelerView: React.FC = () => {
       }
 
       setShakeEnabled(true);
+      setShakeStatus('Detection active');
     } catch (error) {
       console.error('Could not enable shake detection:', error);
       alert('Could not enable shake detection');
     }
+  };
+
+    const handleShakeDetected = () => {
+    setShakeCount((count) => count + 1);
+    setShakeStatus('Shake detected!');
+
+    if (!state.isSosTriggered) {
+      triggerManualSos('Emergency shake gesture detected');
+    }
+
+    setTimeout(() => {
+      setShakeStatus(
+        shakeEnabled ? 'Detection active' : 'Detection off'
+      );
+    }, 3000);
   };
 
   const time = `${String(state.simulatedHour).padStart(2, '0')}:${String(
@@ -84,11 +102,7 @@ export const TravelerView: React.FC = () => {
       {/* Shake Detection */}
       <ShakeDetector
         enabled={shakeEnabled}
-        onShake={() => {
-          if (!state.isSosTriggered) {
-            triggerManualSos('Emergency shake gesture detected');
-          }
-        }}
+        onShake={handleShakeDetected}
       />
 
       {/* Phone Frame */}
@@ -327,14 +341,32 @@ export const TravelerView: React.FC = () => {
                   </button>
                 </div>
 
-                {shakeEnabled && (
-                  <div className="mt-3 pt-3 border-t border-white/10 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-[10px] text-emerald-300 font-semibold">
-                      Shake detection is active
+                <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`w-2 h-2 rounded-full ${
+                        shakeEnabled
+                          ? 'bg-emerald-400 animate-pulse'
+                          : 'bg-slate-400'
+                      }`}
+                    />
+
+                    <span className="text-[10px] text-sub font-semibold">
+                      {shakeStatus}
                     </span>
                   </div>
-                )}
+
+                  <span className="text-[10px] text-sub">
+                    Detected: {shakeCount}
+                  </span>
+                </div>
+
+                <button
+                  onClick={handleShakeDetected}
+                className="mt-3 w-full px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-main text-xs font-black transition"
+                >
+                  Simulate Shake (Demo)
+                </button>
               </div>
 
               <RiskScoreHUD />
